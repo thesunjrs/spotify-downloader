@@ -93,7 +93,7 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
     # Add the static files
     app_state.api.mount(
         "/",
-        SPAStaticFiles(directory=web_app_dir + "/dist", html=True),
+        SPAStaticFiles(directory=f"{web_app_dir}/dist", html=True),
         name="static",
     )
 

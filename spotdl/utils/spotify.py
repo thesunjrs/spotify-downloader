@@ -156,14 +156,15 @@ class SpotifyClient(Spotify, metaclass=Singleton):
         self._initialized = True
 
         use_cache_file: bool = self.use_cache_file  # type: ignore # pylint: disable=E1101
-        cache_file_loc = get_spotify_cache_path()
+        if use_cache_file:
+            cache_file_loc = get_spotify_cache_path()
 
-        if use_cache_file and cache_file_loc.exists():
-            with open(cache_file_loc, "r", encoding="utf-8") as cache_file:
-                self.cache = json.load(cache_file)
-        elif use_cache_file:
-            with open(cache_file_loc, "w", encoding="utf-8") as cache_file:
-                json.dump(self.cache, cache_file)
+            if cache_file_loc.exists():
+                with open(cache_file_loc, "r", encoding="utf-8") as cache_file:
+                    self.cache = json.load(cache_file)
+            else:
+                with open(cache_file_loc, "w", encoding="utf-8") as cache_file:
+                    json.dump(self.cache, cache_file)
 
     def _get(self, url, args=None, payload=None, **kwargs):
         """

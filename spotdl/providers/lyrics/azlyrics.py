@@ -118,7 +118,4 @@ class AzLyrics(LyricsProvider):
         # Find the div with the longest text
         lyrics_div = sorted(div_tags, key=lambda x: len(x.text))[-1]
 
-        # extract lyrics from div and clean it up
-        lyrics = lyrics_div.get_text().strip()
-
-        return lyrics
+        return lyrics_div.get_text().strip()

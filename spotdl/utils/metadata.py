@@ -189,9 +189,7 @@ def embed_metadata(output_file: Path, song: Song, id3_separator: str = "/"):
     audio_file[tag_preset["date"]] = song.date
     audio_file[tag_preset["encodedby"]] = song.publisher
 
-    # Embed metadata that isn't always present
-    album_name = song.album_name
-    if album_name:
+    if album_name := song.album_name:
         audio_file[tag_preset["album"]] = album_name
 
     if song.genres:
@@ -275,14 +273,14 @@ def embed_cover(audio_file, song: Song, encoding: str):
         return audio_file
 
     # Create the image object for the file type
-    if encoding in ["flac", "ogg", "opus"]:
+    if encoding in {"flac", "ogg", "opus"}:
         picture = Picture()
         picture.type = 3
         picture.desc = "Cover"
         picture.mime = "image/jpeg"
         picture.data = cover_data
 
-        if encoding in ["ogg", "opus"]:
+        if encoding in {"ogg", "opus"}:
             image_data = picture.write()
             encoded_data = base64.b64encode(image_data)
             vcomment_value = encoded_data.decode("ascii")
@@ -329,17 +327,12 @@ def embed_lyrics(audio_file, song: Song, encoding: str):
     lrc_lines = lyrics.splitlines()[:5]
     lrc_lines = [line for line in lrc_lines if line and LRC_REGEX.match(line)]
 
-    if len(lrc_lines) == 0:
         # Lyrics are not in lrc format
         # Embed them normally
-        if encoding == "mp3":
+    if encoding == "mp3":
+        if not lrc_lines:
             audio_file.add(USLT(encoding=Encoding.UTF8, text=song.lyrics))
         else:
-            audio_file[tag_preset["lyrics"]] = song.lyrics
-    else:
-        # Lyrics are in lrc format
-        # Embed them as SYLT id3 tag
-        if encoding == "mp3":
             lrc_data = []
             for line in lyrics.splitlines():
                 time_tag = line.split("]", 1)[0] + "]"
@@ -360,9 +353,8 @@ def embed_lyrics(audio_file, song: Song, encoding: str):
 
             audio_file.add(USLT(encoding=3, text=song.lyrics))
             audio_file.add(SYLT(encoding=3, text=lrc_data, format=2, type=1))
-        else:
-            audio_file[tag_preset["lyrics"]] = song.lyrics
-
+    else:
+        audio_file[tag_preset["lyrics"]] = song.lyrics
     return audio_file
 
 
@@ -568,11 +560,11 @@ def embed_wav_file(output_file: Path, song: Song):
         audio.tags.add(TCOP(encoding=3, text=song.copyright_text))  # type: ignore
 
     if song.popularity:
-        audio.tags.add(  # type: ignore
+        audio.tags.add(
             COMM(
                 encoding=3,
                 lang="eng",
-                text="Spotify Popularity: " + str(song.popularity),
+                text=f"Spotify Popularity: {str(song.popularity)}",
             )
         )
 
@@ -591,11 +583,9 @@ def embed_wav_file(output_file: Path, song: Song):
         # Check if the lyrics are in lrc format
         # using regex on the first 5 lines
         lrc_lines = song.lyrics.splitlines()[:5]
-        lrc_lines = [line for line in lrc_lines if line and LRC_REGEX.match(line)]
-
-        if len(lrc_lines) == 0:
-            audio.tags.add(USLT(encoding=Encoding.UTF8, text=song.lyrics))  # type: ignore
-        else:
+        if lrc_lines := [
+            line for line in lrc_lines if line and LRC_REGEX.match(line)
+        ]:
             lrc_data = []
             for line in song.lyrics.splitlines():
                 time_tag = line.split("]", 1)[0] + "]"
@@ -617,4 +607,6 @@ def embed_wav_file(output_file: Path, song: Song):
             audio.tags.add(USLT(encoding=3, text=song.lyrics))  # type: ignore
             audio.tags.add(SYLT(encoding=3, text=lrc_data, format=2, type=1))  # type: ignore
 
+        else:
+            audio.tags.add(USLT(encoding=Encoding.UTF8, text=song.lyrics))  # type: ignore
     audio.save()

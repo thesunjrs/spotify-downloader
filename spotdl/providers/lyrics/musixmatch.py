@@ -34,9 +34,7 @@ class MusixMatch(LyricsProvider):
 
         lyrics_soup = BeautifulSoup(lyrics_resp.text, "html.parser")
         lyrics_paragraphs = lyrics_soup.select("p.mxm-lyrics__content")
-        lyrics = "\n".join(i.get_text() for i in lyrics_paragraphs)
-
-        return lyrics
+        return "\n".join(i.get_text() for i in lyrics_paragraphs)
 
     def get_results(self, name: str, artists: List[str], **kwargs) -> Dict[str, str]:
         """
@@ -80,10 +78,8 @@ class MusixMatch(LyricsProvider):
 
             return self.get_results(name, artists, track_search=True)
 
-        results: Dict[str, str] = {}
-        for tag in song_url_tag:
-            results[tag.get_text()] = "https://www.musixmatch.com" + str(
-                tag.get("href", "")
-            )
-
+        results: Dict[str, str] = {
+            tag.get_text(): "https://www.musixmatch.com" + str(tag.get("href", ""))
+            for tag in song_url_tag
+        }
         return results

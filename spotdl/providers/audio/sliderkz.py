@@ -46,7 +46,7 @@ class SliderKZ(AudioProvider):
         while not search_results and max_retries < 3:
             try:
                 search_response = requests.get(
-                    url="https://slider.kz/vk_auth.php?q=" + search_term,
+                    url=f"https://slider.kz/vk_auth.php?q={search_term}",
                     headers=HEADERS,
                     timeout=5,
                 )

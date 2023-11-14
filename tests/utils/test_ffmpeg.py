@@ -93,9 +93,7 @@ def test_get_local_ffmpeg(monkeypatch):
 
     assert local_ffmpeg is not None
 
-    if platform_str == "Linux":
-        assert str(local_ffmpeg).endswith("ffmpeg")
-    elif platform_str == "Darwin":
+    if platform_str in ["Linux", "Darwin"]:
         assert str(local_ffmpeg).endswith("ffmpeg")
     elif platform_str == "Windows":
         assert str(local_ffmpeg).endswith("ffmpeg.exe")

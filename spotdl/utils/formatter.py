@@ -90,8 +90,8 @@ def create_song_title(song_name: str, song_artists: List[str]) -> str:
 
     """
 
-    joined_artists = ", ".join(song_artists)
-    if len(song_artists) >= 1:
+    if song_artists:
+        joined_artists = ", ".join(song_artists)
         return f"{joined_artists} - {song_name}"
 
     return song_name
@@ -113,11 +113,7 @@ def sanitize_string(string: str) -> str:
     # this is windows specific (disallowed chars)
     output = "".join(char for char in output if char not in "/?\\*|<>")
 
-    # double quotes (") and semi-colons (:) are also disallowed characters but we would
-    # like to retain their equivalents, so they aren't removed in the prior loop
-    output = output.replace('"', "'").replace(":", "-")
-
-    return output
+    return output.replace('"', "'").replace(":", "-")
 
 
 @lru_cache()
@@ -193,7 +189,7 @@ def format_query(
         ("{list-position}", song.list_position),
         ("{list-name}", song.list_name),
     ]:
-        if not (key in template and val is None):
+        if key not in template or val is not None:
             continue
 
         logger.warning(
@@ -214,7 +210,7 @@ def format_query(
     ]
 
     # Add the main artist again to the list
-    if len(artists) == 0 or artists[0] != song.artists[0]:
+    if not artists or artists[0] != song.artists[0]:
         artists.insert(0, song.artists[0])
 
     artists_str = ", ".join(artists)
@@ -222,7 +218,7 @@ def format_query(
     # the code below is valid, song_list is actually checked for None
     formats = {
         "{title}": song.name,
-        "{artists}": song.artists[0] if short is True else artists_str,
+        "{artists}": song.artists[0] if short else artists_str,
         "{artist}": song.artists[0],
         "{album}": song.album_name,
         "{album-artist}": song.album_artist,
@@ -232,14 +228,18 @@ def format_query(
         "{duration}": song.duration,
         "{year}": song.year,
         "{original-date}": song.date,
-        "{track-number}": f"{song.track_number:02d}" if song.track_number else "",
+        "{track-number}": f"{song.track_number:02d}"
+        if song.track_number
+        else "",
         "{tracks-count}": song.tracks_count,
         "{isrc}": song.isrc,
         "{track-id}": song.song_id,
         "{publisher}": song.publisher,
         "{output-ext}": file_extension,
         "{list-name}": song.list_name,
-        "{list-position}": str(song.list_position).zfill(len(str(song.list_length))),
+        "{list-position}": str(song.list_position).zfill(
+            len(str(song.list_length))
+        ),
         "{list-length}": song.list_length,
     }
 
@@ -281,7 +281,7 @@ def create_search_query(
 
     # If template does not contain any of the keys,
     # append {artist} - {title} at the beggining of the template
-    if not any(key in template for key in VARS):
+    if all(key not in template for key in VARS):
         template = "{artist} - {title}" + template
 
     return format_query(song, template, santitize, file_extension, short=short)
@@ -314,10 +314,10 @@ def create_file_name(
 
     # If template does not contain any of the keys,
     # append {artists} - {title}.{output-ext} to it
-    if not any(key in template for key in VARS) and template != "":
+    if all(key not in template for key in VARS) and template != "":
         template += "/{artists} - {title}.{output-ext}"
 
-    if template == "":
+    if not template:
         template = "{artists} - {title}.{output-ext}"
 
     # If template ends with a slash. Does not have a file name with extension
@@ -349,7 +349,7 @@ def create_file_name(
 
         return file
 
-    if short is False:
+    if not short:
         return create_file_name(
             song,
             template,
@@ -475,7 +475,7 @@ def to_ms(
     """
 
     if string:
-        hour = int(string[0:2])
+        hour = int(string[:2])
         minute = int(string[3:5])
         sec = int(string[6:8])
         milliseconds = int(string[10:11])

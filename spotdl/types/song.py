@@ -184,16 +184,15 @@ class Song:
 
         raw_search_results = Song.search(search_term)
 
-        songs = []
-        for idx, _ in enumerate(raw_search_results.get("tracks", []).get("items", [])):
-            songs.append(
-                Song.from_url(
-                    "http://open.spotify.com/track/"
-                    + raw_search_results["tracks"]["items"][idx]["id"]
-                )
+        return [
+            Song.from_url(
+                "http://open.spotify.com/track/"
+                + raw_search_results["tracks"]["items"][idx]["id"]
             )
-
-        return songs
+            for idx, _ in enumerate(
+                raw_search_results.get("tracks", []).get("items", [])
+            )
+        ]
 
     @classmethod
     def from_data_dump(cls, data: str) -> "Song":

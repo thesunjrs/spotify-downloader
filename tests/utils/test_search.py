@@ -24,7 +24,7 @@ def test_parse_song():
 
     song = songs[0]
     assert len(songs) == 1
-    assert song.download_url == None
+    assert song.download_url is None
 
 
 @pytest.mark.vcr()
@@ -79,10 +79,10 @@ def test_get_search_results():
 def test_create_empty_song():
     song = Song.from_missing_data(name="test")
     assert song.name == "test"
-    assert song.url == None
-    assert song.download_url == None
-    assert song.duration == None
-    assert song.artists == None
+    assert song.url is None
+    assert song.download_url is None
+    assert song.duration is None
+    assert song.artists is None
 
 
 @pytest.mark.vcr()

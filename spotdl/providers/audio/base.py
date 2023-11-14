@@ -226,15 +226,10 @@ class AudioProvider:
                 options,
             )
 
-            # Check if any of the search results is in the
-            # first isrc results, since they are not hashable we have to check
-            # by name
-            isrc_result = next(
+            if isrc_result := next(
                 (result for result in search_results if result.url in isrc_urls),
                 None,
-            )
-
-            if isrc_result:
+            ):
                 logger.debug(
                     "[%s] Best ISRC result is %s", song.song_id, isrc_result.url
                 )
@@ -366,9 +361,7 @@ class AudioProvider:
         """
 
         try:
-            data = self.audio_handler.extract_info(url, download=download)
-
-            if data:
+            if data := self.audio_handler.extract_info(url, download=download):
                 return data
         except Exception as exception:
             logger.debug(exception)

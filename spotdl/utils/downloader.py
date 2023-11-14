@@ -19,7 +19,4 @@ def check_ytmusic_connection() -> bool:
     # Check if we are getting results from YouTube Music
     ytm = YouTubeMusic()
     test_results = ytm.get_results("a")
-    if len(test_results) == 0:
-        return False
-
-    return True
+    return len(test_results) != 0

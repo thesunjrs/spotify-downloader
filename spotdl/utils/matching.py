@@ -126,10 +126,7 @@ def create_clean_string(
 
         final.append(word)
 
-    if sort:
-        return sort_string(final, join_str)
-
-    return f"{join_str}".join(final)
+    return sort_string(final, join_str) if sort else f"{join_str}".join(final)
 
 
 def sort_string(strings: List[str], join_str: str) -> str:
@@ -193,11 +190,7 @@ def check_common_word(song: Song, result: Result) -> bool:
     sentence_words = slugify(song.name).split("-")
     to_check = slugify(result.name).replace("-", "")
 
-    for word in sentence_words:
-        if word != "" and word in to_check:
-            return True
-
-    return False
+    return any(word != "" and word in to_check for word in sentence_words)
 
 
 def check_forbidden_words(song: Song, result: Result) -> Tuple[bool, List[str]]:
@@ -215,11 +208,11 @@ def check_forbidden_words(song: Song, result: Result) -> Tuple[bool, List[str]]:
     song_name = slugify(song.name).replace("-", "")
     to_check = slugify(result.name).replace("-", "")
 
-    words = []
-    for word in FORBIDDEN_WORDS:
-        if word in to_check and word not in song_name:
-            words.append(word)
-
+    words = [
+        word
+        for word in FORBIDDEN_WORDS
+        if word in to_check and word not in song_name
+    ]
     return len(words) > 0, words
 
 
@@ -369,12 +362,9 @@ def calc_artists_match(song: Song, result: Result) -> float:
     - artists match percentage
     """
 
-    artist_match_number = 0.0
-
     # Result has only one artist, return 0.0
     if len(song.artists) == 1 or not result.artists:
-        return artist_match_number
-
+        return 0.0
     artist1_list, artist2_list = based_sort(
         list(map(slugify, song.artists)), list(map(slugify, result.artists))
     )
@@ -387,9 +377,7 @@ def calc_artists_match(song: Song, result: Result) -> float:
         artist12_match = ratio(artist1, artist2)
         artists_match += artist12_match
 
-    artist_match_number = artists_match / len(artist1_list)
-
-    return artist_match_number
+    return artists_match / len(artist1_list)
 
 
 def artists_match_fixup1(song: Song, result: Result, score: float) -> float:
@@ -534,10 +522,7 @@ def artists_match_fixup3(song: Song, result: Result, score: float) -> float:
     if artists_score_fixup >= 80:
         score = (score + artists_score_fixup) / 2
 
-    # Make sure that the score is not higher than 100
-    score = min(score, 100)
-
-    return score
+    return min(score, 100)
 
 
 def calc_name_match(

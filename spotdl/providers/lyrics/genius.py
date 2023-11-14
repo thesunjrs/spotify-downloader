@@ -54,10 +54,10 @@ class Genius(LyricsProvider):
             timeout=10,
         )
 
-        results: Dict[str, str] = {}
-        for hit in search_response.json()["response"]["hits"]:
-            results[hit["result"]["full_title"]] = hit["result"]["id"]
-
+        results: Dict[str, str] = {
+            hit["result"]["full_title"]: hit["result"]["id"]
+            for hit in search_response.json()["response"]["hits"]
+        }
         return results
 
     def extract_lyrics(self, url: str, **_) -> Optional[str]:

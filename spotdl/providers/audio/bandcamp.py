@@ -21,15 +21,13 @@ class BandCampTrack:
     """
 
     def __init__(self, artist_id: int, track_id: int):
-        # object info
-        self.type = "track"
-
         # track information
         self.track_id: int = 0
         self.track_title: str = ""
         self.track_number: int = 0
         self.track_duration_seconds: float = 0.00
         self.track_streamable: Optional[bool] = None
+        self.type = "track"
         self.has_lyrics: Optional[bool] = None
         self.lyrics: str = ""
         self.is_price_set: Optional[bool] = None
@@ -68,11 +66,7 @@ class BandCampTrack:
         self.supporters: list = []
 
         response = requests.get(
-            url="https://bandcamp.com/api/mobile/25/tralbum_details?band_id="
-            + str(artist_id)
-            + "&tralbum_id="
-            + str(track_id)
-            + "&tralbum_type=t",
+            url=f"https://bandcamp.com/api/mobile/25/tralbum_details?band_id={artist_id}&tralbum_id={track_id}&tralbum_type=t",
             timeout=10,
         )
         result = response.json()
@@ -86,9 +80,7 @@ class BandCampTrack:
         # getting lyrics, if there is any
         if self.has_lyrics is True:
             resp = requests.get(
-                "https://bandcamp.com/api/mobile/25/tralbum_lyrics?tralbum_id="
-                + str(self.track_id)
-                + "&tralbum_type=t",
+                f"https://bandcamp.com/api/mobile/25/tralbum_lyrics?tralbum_id={str(self.track_id)}&tralbum_type=t",
                 timeout=10,
             )
             rjson = resp.json()
@@ -105,7 +97,7 @@ class BandCampTrack:
             self.tags.append(tag["name"])
 
         self.art_id = result["art_id"]
-        self.art_url = "https://f4.bcbits.com/img/a" + str(self.art_id) + "_0.jpg"
+        self.art_url = f"https://f4.bcbits.com/img/a{str(self.art_id)}_0.jpg"
 
         self.artist_id = result["band"]["band_id"]
         self.artist_title = result["band"]["name"]
@@ -139,20 +131,17 @@ def search(search_string: str = ""):
     """
 
     response = requests.get(
-        "https://bandcamp.com/api/fuzzysearch/2/app_autocomplete?q="
-        + search_string
-        + "&param_with_locations=true",
+        f"https://bandcamp.com/api/fuzzysearch/2/app_autocomplete?q={search_string}&param_with_locations=true",
         timeout=10,
     )
 
     results = response.json()["results"]
 
-    return_results: List[Tuple[str, str]] = []
-
-    for item in results:
-        if item["type"] == "t":
-            return_results.append((item["band_id"], item["id"]))
-
+    return_results: List[Tuple[str, str]] = [
+        (item["band_id"], item["id"])
+        for item in results
+        if item["type"] == "t"
+    ]
     return return_results
 
 
