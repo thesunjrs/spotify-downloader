@@ -189,8 +189,8 @@ class ProgressHandler:
         self.song_count = count
         self.overall_total = 100 * count
 
-        if not self.simple_tui:
-            if self.song_count > 4:
+        if self.song_count > 4:
+            if not self.simple_tui:
                 self.overall_task_id = self.rich_progress_bar.add_task(
                     description="Total",
                     message=(
@@ -206,22 +206,21 @@ class ProgressHandler:
         Update the overall progress bar.
         """
 
-        if not self.simple_tui:
-            # If the overall progress bar exists
-            if self.overall_task_id is not None:
-                self.rich_progress_bar.update(
-                    self.overall_task_id,
-                    message=f"{self.overall_completed_tasks}/"
-                    f"{int(self.overall_total / 100)} "
-                    "complete",
-                    completed=self.overall_progress,
-                )
-        else:
+        if self.simple_tui:
             if self.previous_overall != self.overall_completed_tasks:
                 logger.info(
                     "%s/%s complete", self.overall_completed_tasks, self.song_count
                 )
                 self.previous_overall = self.overall_completed_tasks
+
+        elif self.overall_task_id is not None:
+            self.rich_progress_bar.update(
+                self.overall_task_id,
+                message=f"{self.overall_completed_tasks}/"
+                f"{int(self.overall_total / 100)} "
+                "complete",
+                completed=self.overall_progress,
+            )
 
     def get_new_tracker(self, song: Song) -> "SongTracker":
         """

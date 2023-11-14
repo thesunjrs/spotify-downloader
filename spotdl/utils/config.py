@@ -240,10 +240,10 @@ def modernize_settings(options: DownloaderOptions):
     - options: DownloaderOptions to modernize
     """
 
-    warning_msg = "Deprecated '%s' value found for '%s' setting in config file. Using '%s' instead."
-
     # Respect backward compatibility with old boolean --restrict flag
     if options["restrict"] is True:
+        warning_msg = "Deprecated '%s' value found for '%s' setting in config file. Using '%s' instead."
+
         logger.warning(warning_msg, True, "restrict", "strict")
         options["restrict"] = "strict"
 

@@ -99,7 +99,7 @@ def parse_main_options(parser: _ArgumentGroup):
         # If we are running the web interface
         # or we are in the frozen env and not running web interface
         # don't remove the operation from the arg parser
-        if not is_web or (is_frozen and not is_web):
+        if not is_web:
             parser._remove_action(operation)  # pylint: disable=protected-access
 
         parser._remove_action(query)  # pylint: disable=protected-access

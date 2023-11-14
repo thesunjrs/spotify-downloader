@@ -100,7 +100,7 @@ def test_song_from_url():
         == "https://i.scdn.co/image/ab67616d0000b273fe2cb38e4d2412dbb0e54332"
     )
     assert song.explicit == False
-    assert song.download_url == None
+    assert song.download_url is None
     assert song.popularity == 0
 
 

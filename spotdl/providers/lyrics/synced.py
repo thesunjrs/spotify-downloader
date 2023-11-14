@@ -59,6 +59,4 @@ class Synced(LyricsProvider):
         - The lyrics of the song or None if no lyrics were found.
         """
 
-        lyrics = syncedlyrics.search(f"{name} - {artists[0]}", allow_plain_format=True)
-
-        return lyrics
+        return syncedlyrics.search(f"{name} - {artists[0]}", allow_plain_format=True)

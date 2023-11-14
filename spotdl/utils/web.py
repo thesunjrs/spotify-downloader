@@ -186,8 +186,7 @@ class Client:
         - returns the WebSocket instance.
         """
 
-        instance = app_state.clients.get(client_id)
-        if instance:
+        if instance := app_state.clients.get(client_id):
             return instance
 
         app_state.logger.error("Client %s not found", client_id)

@@ -112,9 +112,7 @@ def get_ffmpeg_path() -> Optional[Path]:
     - Path to ffmpeg binary or None if not found.
     """
 
-    # Check if ffmpeg is installed
-    global_ffmpeg = shutil.which("ffmpeg")
-    if global_ffmpeg:
+    if global_ffmpeg := shutil.which("ffmpeg"):
         return Path(global_ffmpeg)
 
     # Get local ffmpeg path
@@ -194,10 +192,7 @@ def get_local_ffmpeg() -> Optional[Path]:
         "ffmpeg" + (".exe" if platform.system() == "Windows" else "")
     )
 
-    if ffmpeg_path.is_file():
-        return ffmpeg_path
-
-    return None
+    return ffmpeg_path if ffmpeg_path.is_file() else None
 
 
 def download_ffmpeg() -> Path:
@@ -294,16 +289,17 @@ def convert(
     # otherwise we use arguments from FFMPEG_FORMATS
     if output_format == "opus" and file_format != "webm":
         arguments.extend(["-c:a", "libopus"])
+    elif (
+        output_format == "opus"
+        or output_format == "m4a"
+        and file_format == "m4a"
+        and not bitrate
+        and not ffmpeg_args
+    ):
+        # Copy the audio stream to the output file
+        arguments.extend(["-vn", "-c:a", "copy"])
     else:
-        if (
-            (output_format == "opus" and file_format == "webm")
-            or (output_format == "m4a" and file_format == "m4a")
-            and not (bitrate or ffmpeg_args)
-        ):
-            # Copy the audio stream to the output file
-            arguments.extend(["-vn", "-c:a", "copy"])
-        else:
-            arguments.extend(FFMPEG_FORMATS[output_format])
+        arguments.extend(FFMPEG_FORMATS[output_format])
 
     # Add bitrate if specified
     if bitrate:
@@ -323,12 +319,12 @@ def convert(
 
     # Run ffmpeg
     with subprocess.Popen(
-        [ffmpeg, *arguments],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=False,
-    ) as process:
+            [ffmpeg, *arguments],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=False,
+        ) as process:
         if not progress_handler:
             # Wait for process to finish
             proc_out = process.communicate()
@@ -377,8 +373,7 @@ def convert(
                 total_dur = to_ms(**total_dur_match.groupdict())  # type: ignore
                 continue
             if total_dur:
-                progress_time = TIME_REGEX.search(out_line)
-                if progress_time:
+                if progress_time := TIME_REGEX.search(out_line):
                     elapsed_time = to_ms(**progress_time.groupdict())  # type: ignore
                     progress_handler(int(elapsed_time / total_dur * 100))  # type: ignore
 

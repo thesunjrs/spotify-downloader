@@ -246,18 +246,14 @@ class Downloader:
         """
 
         if self.settings["fetch_albums"]:
-            albums = set(song.album_id for song in songs if song.album_id is not None)
+            albums = {song.album_id for song in songs if song.album_id is not None}
             logger.info(
                 "Fetching %d album%s", len(albums), "s" if len(albums) > 1 else ""
             )
 
             songs.extend(songs_from_albums(list(albums)))
 
-            # Remove duplicates
-            return_obj = {}
-            for song in songs:
-                return_obj[song.url] = song
-
+            return_obj = {song.url: song for song in songs}
             songs = list(return_obj.values())
 
         logger.debug("Downloading %d songs", len(songs))
@@ -358,8 +354,9 @@ class Downloader:
         """
 
         for audio_provider in self.audio_providers:
-            url = audio_provider.search(song, self.settings["only_verified_results"])
-            if url:
+            if url := audio_provider.search(
+                song, self.settings["only_verified_results"]
+            ):
                 return url
 
             logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
@@ -378,8 +375,7 @@ class Downloader:
         """
 
         for lyrics_provider in self.lyrics_providers:
-            lyrics = lyrics_provider.get_lyrics(song.name, song.artists)
-            if lyrics:
+            if lyrics := lyrics_provider.get_lyrics(song.name, song.artists):
                 logger.debug(
                     "Found lyrics for %s on %s", song.display_name, lyrics_provider.name
                 )

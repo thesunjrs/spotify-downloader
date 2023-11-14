@@ -124,8 +124,8 @@ def get_simple_songs(
     - List of simple song objects
     """
 
-    songs: List[Song] = []
     lists: List[SongList] = []
+    songs: List[Song] = []
     for request in query:
         logger.info("Processing query: %s", request)
 
@@ -146,12 +146,10 @@ def get_simple_songs(
             split_urls = request.split("|")
             if (
                 len(split_urls) <= 1
-                or not (
-                    "watch?v=" in split_urls[0]
-                    or "youtu.be" in split_urls[0]
-                    or "soundcloud.com/" in split_urls[0]
-                    or "bandcamp.com/" in split_urls[0]
-                )
+                or "watch?v=" not in split_urls[0]
+                and "youtu.be" not in split_urls[0]
+                and "soundcloud.com/" not in split_urls[0]
+                and "bandcamp.com/" not in split_urls[0]
                 or "spotify" not in split_urls[1]
             ):
                 raise QueryError(
@@ -187,8 +185,8 @@ def get_simple_songs(
                 elif "?list=PL" in request or "browse/VLPL" in request:
                     lists.append(create_ytm_playlist(request, fetch_songs=False))
             else:
-                if ("spotify" not in split_urls[1]) or not any(
-                    x in split_urls[0]
+                if "spotify" not in split_urls[1] or all(
+                    x not in split_urls[0]
                     for x in ["?list=PL", "?list=OLAK5uy_", "browse/VLPL"]
                 ):
                     raise QueryError(
@@ -255,9 +253,7 @@ def get_simple_songs(
             lists.extend(get_user_followed_artists())
         elif request.endswith(".spotdl"):
             with open(request, "r", encoding="utf-8") as save_file:
-                for track in json.load(save_file):
-                    # Append to songs
-                    songs.append(Song.from_dict(track))
+                songs.extend(Song.from_dict(track) for track in json.load(save_file))
         else:
             songs.append(Song.from_search_term(request))
 
@@ -407,11 +403,8 @@ def reinit_song(song: Song) -> Song:
     for key in Song.__dataclass_fields__:  # type: ignore # pylint: disable=E1101
         val = data.get(key)
         new_val = new_data.get(key)
-        if new_val is not None and val is None:
-            data[key] = new_val
-        elif new_val is not None and val is not None:
-            data[key] = val
-
+        if new_val is not None:
+            data[key] = new_val if val is None else val
     # return reinitialized song object
     return Song(**data)
 
@@ -537,8 +530,10 @@ def create_ytm_playlist(url: str, fetch_songs: bool = True) -> Playlist:
     - a Playlist object
     """
 
-    if not ("?list=" in url or "/browse/VLPL" in url) or not url.startswith(
-        "https://music.youtube.com/"
+    if (
+        "?list=" not in url
+        and "/browse/VLPL" not in url
+        or not url.startswith("https://music.youtube.com/")
     ):
         raise ValueError(f"Invalid playlist url: {url}")
 

@@ -129,14 +129,14 @@ def sync(
                     logger.info("Deleting %s", file)
                     try:
                         file.unlink()
-                    except (PermissionError, OSError) as exc:
+                    except OSError as exc:
                         logger.debug(
                             "Could not remove temp file: %s, error: %s", file, exc
                         )
                 else:
                     logger.debug("%s does not exist.", file)
 
-            if len(to_delete) == 0:
+            if not to_delete:
                 logger.info("Nothing to delete...")
             else:
                 logger.info("%s old songs were deleted.", len(to_delete))

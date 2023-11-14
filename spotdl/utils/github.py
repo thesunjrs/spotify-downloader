@@ -119,23 +119,19 @@ def check_for_updates(repo: str = REPO) -> str:
         dev = get_status(current_version, "dev")
     except RuntimeError:
         message = "Couldn't check for updates. You might be running a dev version.\n"
-        message += "Current version: " + current_version + "\n"
-        message += "Latest version: " + latest_version
+        message += f"Current version: {current_version}" + "\n"
+        message += f"Latest version: {latest_version}"
         return message
     except RateLimitError:
         message = "GitHub API rate limit exceeded. Couldn't check for updates.\n"
-        message += "Current version: " + current_version + "\n"
-        message += "Latest version: " + latest_version + "\n"
+        message += f"Current version: {current_version}" + "\n"
+        message += f"Latest version: {latest_version}" + "\n"
         message += "Please try again later."
         return message
 
     for branch in ["master", "dev"]:
         name = branch.capitalize()
-        if branch == "master":
-            status, ahead_by, behind_by = master
-        else:
-            status, ahead_by, behind_by = dev
-
+        status, ahead_by, behind_by = master if branch == "master" else dev
         if status == "behind":
             message += f"{name} is {status} by {behind_by} commits.\n"
         elif status == "ahead":
@@ -169,19 +165,17 @@ def create_github_url(url: str = WEB_APP_URL):
             "The given URL is a GitHub repo. Please use 'git clone' to download it."
         )
 
-    # extract the branch name from the given url (e.g master)
-    branch = re_branch.search(url)
-    if branch:
+    if branch := re_branch.search(url):
         download_dirs = url[branch.end() :]
-        api_url = (
-            url[: branch.start()].replace("github.com", "api.github.com/repos", 1)
+        return (
+            url[: branch.start()].replace(
+                "github.com", "api.github.com/repos", 1
+            )
             + "/contents/"
             + download_dirs
             + "?ref="
             + branch.group(2)
         )
-        return api_url
-
     raise ValueError("The given url is not a valid GitHub url")
 
 
@@ -244,6 +238,5 @@ def download_github_dir(
             with open(path, "wb") as new_file:
                 new_file.write(requests.get(file_url, timeout=10).content)
         else:
-            download_github_dir(file["html_url"], flatten, output_dir)
-
+            download_github_dir(file["html_url"], flatten, dir_out)
     return None
